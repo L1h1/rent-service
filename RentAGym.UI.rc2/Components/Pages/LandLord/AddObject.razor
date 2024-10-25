@@ -1,0 +1,88 @@
+﻿@page "/Landlord/add-object"
+@using RentAGym.Application.Interfaces;
+@rendermode RenderMode.InteractiveServer
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Threading
+@inject ILogger<AddHall> Logger
+@inject UserAccessor UserAccessor
+
+<JSScript JSFile="./Components/Pages/LandLord/AddObject.razor.js" />
+
+<EditForm method="post" Model="@newObject" OnValidSubmit="SaveHallAsync" enctype="multipart/form-data" class="g-3" FormName="addObject">
+    <div class="col-md-6 container">
+        <label for="validationCustom01" class="form-label">Название</label>
+        <InputText @bind-Value="@newObject.Name" type="text" class="form-control-custom" required></InputText>
+
+        <label for="validationCustom02" class="form-label">Страна</label>
+        <InputText @bind-Value="@newObject.Country" type="text" class="form-control-custom" required></InputText>
+
+        <label for="validationCustom04" class="form-label">Город</label>
+        <InputText @bind-Value="@newObject.City" type="text" class="form-control-custom" required></InputText>
+
+        <label for="validationCustom04" class="form-label">Адрес</label>
+        <InputText @bind-Value="@newObject.Address" type="text" class="form-control-custom" required></InputText>
+
+        <p class="header">Выберите точное здание на карте</p>
+        <MapView OnClick="OnClick" Longitude="27.55" Latitude="53.90" Zoom="11" Style="height: 600px; width: 800px; margin-bottom: 20px;">
+            <Map ArcGISDefaultBasemap="arcgis-topographic">
+                <BingMapsLayer Key="AhpMcEovB9kF91KWQbiV-Tt9EkId-9iYFaBc04hivbgoPjzfyjkeU804ZgUc9z0-" Style="BingImageryStyle.Hybrid">
+                </BingMapsLayer>
+            </Map>
+            <Graphic @ref="_graphic">
+                <SimpleMarkerSymbol Color="@(new MapColor(226, 119, 40))">
+                    <Outline Color="@(new MapColor(255, 255, 255))" Width="1" />
+                </SimpleMarkerSymbol>
+            </Graphic>
+            <SearchWidget Position="OverlayPosition.TopRight" />
+            <ScaleBarWidget Position="OverlayPosition.BottomLeft" />
+        </MapView>
+        <div class="col-12" style="padding-bottom: 10px;">
+            <button class="btn btn-primary" type="submit">Отправить</button>
+        </div>
+    </div>
+    <DataAnnotationsValidator />
+</EditForm>
+
+@code {
+    private UserDTO resp = new();
+    private Graphic? _graphic;
+    private GraphicsLayer? _graphicsLayer;
+    private readonly List<Point> _points = new();
+
+    [SupplyParameterFromForm] public CreateFacilityRequestDTO newObject { get; set; } = new();
+    [Inject] public IMediator Mediator { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserAccessor.GetRequiredUserAsync();
+        newObject.LandLordId = user.Id;
+    }
+
+    private async Task OnClick(ClickEvent arg)
+    {
+        Point point = arg.MapPoint;
+        PopupTemplate popupTemplate = new PopupTemplate(
+            $"Точка успешно добавлена!");
+
+        await _graphic.Add(popupTemplate);
+        newObject.Longitude = point.Latitude!.Value;
+        newObject.Latitude = point.Longitude!.Value;
+        SimpleMarkerSymbol symbol = new SimpleMarkerSymbol(new Outline(new MapColor("blue")),
+            new MapColor("yellow"), 10);
+        await _graphic.SetGeometry(point);
+    }
+
+    private async Task AddPoint()
+    {
+        _points.Add(((Point)_graphic!.Geometry!).Clone());
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveHallAsync()
+    {
+        newObject.RegionId = 2;
+
+        await Mediator.Send(new CreateFacilityRequest(newObject));
+    }
+}

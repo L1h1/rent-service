@@ -1,0 +1,26 @@
+﻿<div class="card m-1" style="border-color:#FFC34F;">
+    <div class="row g-0">
+        <div class="col-md-4 item">
+            <img src="@Current.Thumbnail.ImageUri" class="image">
+        </div>
+        <div class="col-md-6">
+            <div class="card-body">
+                <h4 class="card-title">@Current.Name</h4>
+                <p class="card-text">@Current.Description</p>
+                <Rating Color="Color.Warning" SelectedValue="@((int)Current.OverallRating)" Disabled=true MaxValue="5" /> @Current.OverallRating.ToString("0.00")
+            </div>
+        </div>
+        <div class="col-md-2">
+            <Div Class="card-body">
+                <h4 class="card-title">от @Current.Price руб</h4>
+            </Div>
+            <div class=" text-end align-text-bottom p-2">
+                <a href="/halls/@Current.Id" class="text-muted">Подробнее</a>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public HallListRequestDTO Current { get; set; }
+}

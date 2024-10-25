@@ -1,0 +1,109 @@
+﻿@rendermode RenderMode.InteractiveServer
+
+@inject IMediator Mediator
+
+<div class="row justify-content-center">
+
+    <span class="badge text-dark" style="font-size: 14px; padding-block: 10px;">
+        Фильтры
+    </span>
+
+</div>
+
+<EditForm FormName="filters" Model="@FilterData" OnValidSubmit="OnSubmit">
+    <div class="row mb-3">
+        <label for="inputEmail3" class="col-md-3 col-form-label">Цена</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" placeholder="От" @bind-Value="@FilterData.PriceFrom" />
+        </div>
+        <div class="col-md-1">-</div>
+        <div class="col-md-4">
+            <InputNumber class="form-control" placeholder="До" @bind-Value="@FilterData.PriceTo" />
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputEmail3" class="col-md-3 col-form-label">Площадь</label>
+        <div class="col-md-4">
+            <InputNumber class="form-control" placeholder="От" @bind-Value="@FilterData.SquareFrom" />
+        </div>
+        <div class="col-md-1">-</div>
+        <div class="col-md-4">
+            <InputNumber class="form-control" placeholder="До" @bind-Value="@FilterData.SquareTo" />
+        </div>
+    </div>
+    <Div>
+        @foreach (var option in Options)
+        {
+            <div class="row">
+                <label class="col col-form-label">
+                    @option.Name
+                </label>
+                <Div Class="col">
+                    <input type="checkbox" @bind="@checks[option.Id]" />
+
+                </Div>
+            </div>
+        }
+    </Div>
+    <Div Class="text-center m-2">
+        <Button Type="ButtonType.Submit" Class="a-link-filer-panel">Применить</Button>
+    </Div>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+
+    public HallListFilter FilterData { get; set; } = new();
+
+
+    [Parameter] public HallListFilter Filter { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<HallListFilter> FilterChanged { get; set; }
+
+
+    IEnumerable<Option> Options { get; set; }
+
+    Dictionary<int, bool> checks;
+
+    bool Checked { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Options = await Mediator.Send(new GetOptionsListRequest());
+        checks = Options.Select(o => KeyValuePair.Create(o.Id, false))
+                        .ToDictionary();
+    }
+
+    // class FilterData
+    // {
+    //     public double MinPrice { get; set; }// = 0;
+    //     public double MaxPrice { get; set; }// = double.MaxValue;
+    // }
+
+    async void OnSubmit()
+    {
+        FilterData.OptionIds = checks.Where(c => c.Value).Select(c => c.Key).ToList();
+        Filter = FilterData;
+        await FilterChanged.InvokeAsync(Filter);
+        await ApplyFilter.InvokeAsync();
+    }
+
+    [Parameter]
+    public EventCallback ApplyFilter { get; set; }
+
+
+    void OnChecked(int id)
+    {
+        checks[id] = !checks[id];
+        if (checks[id])
+        {
+            FilterData.OptionIds.Add(id);
+        }
+        else
+        {
+            FilterData.OptionIds.Remove(id);
+        }
+    }
+
+}

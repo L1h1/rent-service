@@ -1,0 +1,144 @@
+﻿@page "/LandLord/profile/client_records"
+@rendermode RenderMode.InteractiveServer
+@inject NavigationManager NavManager
+
+
+<h3>Записи клиентов</h3>
+<div class="client-records-main">
+    <div class="chkbox-story">
+        <p class="archive-state">Архивные</p>
+        <label class="switch">
+            <input @bind-value="IsActive" type="checkbox" checked>
+            <span class="slider round"></span>
+        </label>
+        <p class="active-state">Активные</p>
+    </div>
+    @if (IsActive)
+    {
+        if (currentStory.Count() == 0 || currentStory == null)
+        {
+            <p>Активные записи отсутствуют</p>
+        }
+        @foreach (var schedule in currentStory!)
+        {
+            <div class="record-list-component">
+                <div class="name-with-img">
+                    <p>@schedule.HallName</p>
+                    <img class="hall-img" src="@schedule.PreviewImage!.ImageUri" />
+                </div>
+                <div class="info-column">
+                    <p>Дата от</p>
+                    @{
+                        string dateFrom = schedule.DateFrom.Date.ToString("d");
+                        <p>@dateFrom</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Дата до</p>
+                    @{
+                        string dateBefore = schedule.DateTo.Date.ToString("d");
+                        <p>@dateBefore</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Время от</p>
+                    @{
+                        string timeFrom = $"{schedule.DateFrom:t}";
+                        <p>@timeFrom</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Время до</p>
+                    @{
+                        string timeTo = $"{schedule.DateTo:t}";
+                        <p>@timeTo</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Арендатор</p>
+                    <p>@schedule.TenantName</p>
+                </div>
+                <a href="/chat/@schedule.RentBorderId" class="a-link">Чат</a>
+            </div>
+        }
+    }
+    else
+    {
+        if (archiveStory.Count() == 0 || archiveStory == null)
+        {
+            <p>Архивные записи отсутствуют</p>
+        }
+        @foreach (var schedule in archiveStory!)
+        {
+            <div class="record-list-component">
+                <div class="name-with-img">
+                    <p>@schedule.HallName</p>
+                    <img class="hall-img" src="@schedule.PreviewImage!.ImageUri" />
+                </div>
+                <div class="info-column">
+                    <p>Дата от</p>
+                    @{
+                        string dateFrom = schedule.DateTo.Date.ToString("d");
+                        <p>@dateFrom</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Дата до</p>
+                    @{
+                        string dateBefore = schedule.DateTo.Date.ToString("d");
+                        <p>@dateBefore</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Время от</p>
+                    @{
+                        string timeFrom = $"{schedule.DateFrom:t}";
+                        <p>@timeFrom</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Время до</p>
+                    @{
+                        string timeTo = $"{schedule.DateTo:t}";
+                        <p>@timeTo</p>
+                    }
+                </div>
+                <div class="info-column">
+                    <p>Арендатор</p>
+                    <p>@schedule.TenantName</p>
+                </div>
+                <a href="/chat/@schedule.RentBorderId" class="a-link">Чат</a>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [CascadingParameter] public Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+    [Inject] public IMediator? Mediator { get; set; }
+    private IEnumerable<RentDTO>? _schedules;
+    private IEnumerable<RentDTO>? currentStory;
+    private IEnumerable<RentDTO>? archiveStory;
+    private bool IsActive { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        var authenticationState = await AuthenticationStateTask!;
+        var user = authenticationState.User;
+        // перенаправление, в случае, если пользователь не авторизирован
+        if (!user.Identity!.IsAuthenticated)
+        {
+            NavManager.NavigateTo("/Account/Login");
+        }
+        var id = user.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        _schedules = await Mediator!.Send(new GetHallRentsRequest(id));
+
+        if (_schedules != null)
+        {
+            currentStory = _schedules!.Where(x => x.IsDone == false);
+            archiveStory = _schedules!.Where(x => x.IsDone == true);
+        }
+        _schedules = null;
+    }
+}

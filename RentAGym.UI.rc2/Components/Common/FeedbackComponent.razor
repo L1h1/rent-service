@@ -1,0 +1,17 @@
+﻿<div class="card m-1" style="border-color:#FFC34F;">
+    <!-- Содержимое рейтинга -->
+    <div class="rating-block">
+        <p class="rating-name">Оценка: </p>
+        <div class="rating-info">
+            <Rating Color="Color.Warning" SelectedValue="@((int)Data.Mark)" Disabled=true MaxValue="5" /> @Data.Mark.ToString("0.00")
+        </div>
+    </div>
+    <!-- Содержимое рейтинга -->
+    <p class="user-name">@Data.Username</p>
+    <p class="user-content">@Data.Contents</p>
+</div>
+
+@code {
+    [Parameter]
+    public Review? Data { get; set; }
+}

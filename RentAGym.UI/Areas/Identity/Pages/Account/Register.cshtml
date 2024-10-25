@@ -1,0 +1,76 @@
+﻿@page
+
+@model RegisterModel
+@{
+
+}
+
+
+<body>
+<div class="container">
+    <div class="register-box-container">
+        <div class="register-box">
+            <div class="row">
+                <section>
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
+                        <h2 style="text-align: center">Регистрация</h2>
+                        <hr/>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-floating" style="margin-bottom: 10px">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="email" aria-required="true"/>
+                            <label asp-for="Input.Email" class="form-label">E-Mail</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating" style="margin-bottom: 10px">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true"/>
+                            <label asp-for="Input.Password" class="form-label">Пароль</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating" style="margin-bottom: 10px">
+                            <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true"/>
+                            <label asp-for="Input.ConfirmPassword" class="form-label">Подтверждение пароля</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <div>
+
+                            <div class="checkbox">
+                                <label asp-for="Input.IsLandLord" class="form-label">
+                                    <input class="form-check-input" asp-for="Input.IsLandLord"/>
+                                    @Html.DisplayNameFor(m => m.Input.IsLandLord)
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin: auto; justify-content: center; display: flex;">
+                            <button id="login-submit" type="submit" class="btn main-button-medium fade-for-main-button">Продолжить</button>
+                        </div>
+                        <div>
+                            <p style="text-align: center; margin-top: 10px">
+                                <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" style="color: #3E95B8;">Вход</a>
+
+                            <p>
+                                @if (Model.ExternalLogins != null)
+                                {
+                                    foreach (var provider in Model.ExternalLogins)
+                                    {
+                                        <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                        <i class="fab fa-@provider.Name.ToLower()"></i> @provider.DisplayName</button>
+                                    }
+                                }
+
+                            </p>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+@section styles{
+    <link href="~/css/register-form.css" rel="stylesheet"/>
+}
+
+@* @section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+} *@

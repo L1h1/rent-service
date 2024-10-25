@@ -1,0 +1,149 @@
+﻿@page "/chat/{id}"
+@rendermode RenderMode.InteractiveServer
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Net
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+@inject UserAccessor UserAccessor
+@inject IMediator Mediator
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JsRuntime
+
+
+<PageTitle>Чат</PageTitle>
+<JSScript JSFile="./Components/Pages/Chat.razor.js" />
+
+<div class="chat-container">
+    <div @onclick="NavToDetails" class="chat-header">
+        <img src="@Current!.Images.First().ImageUri"/>
+        <div class="user-info">
+            <label>@Current.Name</label>
+            <label>@Current.Price руб</label>
+        </div>
+    </div>
+    <div class="chat-body" id="chat-body">
+        <ul id="messagesList">
+            @foreach (var message in messages)
+            {
+                string time = $"{message.DateTime:t}";
+                <li class="@(message.Message.StartsWith($"{userInput!}:") ? "user-message" : "other-message")">
+                    <div>
+                        <p class="time">@time</p>
+                        <p class="message-descr">@message.Message</p>
+                    </div>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="chat-footer">
+        <div class="message-input">
+            <label for="message-input">Message:</label>
+            <input class="form-control-chat" @onkeydown="OnKeyPressed" type="text" id="message-input" @bind="messageInput" />
+        <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+        </div>
+    </div>
+</div>
+<main>
+    <img src="./Images/cat.png" id="cat">
+    <div class="eyes">
+        <img src="./Images/eye.png" class="eye">
+        <img src="./Images/eye.png" class="eye">
+    </div>
+</main>
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+    HallDetailsRequestDTO? Current { get; set; }
+    private HubConnection? hubConnection;
+    private List<ChatMessage> messages = new List<ChatMessage>();
+    private string? userInput;
+    private string? messageInput;
+    private IJSObjectReference? jsModule;
+    private RentDTO? roomData;  //тут только landlordName, tenantName и уникальный идентификатор для группы
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await UserAccessor.GetRequiredUserAsync();
+        userInput = user.Email;
+
+        roomData = await Mediator.Send(new ChatRoomDataRequest(int.Parse(id)));
+        var history = await Mediator.Send(new GetChatRoomHistoryRequest(id));
+        messages = history.ToList();
+
+        if (user.UserName != roomData.TenantName && user.UserName != roomData.LandlordName)
+            return;
+        Current = await Mediator.Send(new GetHallByIdRequest(roomData.HallId));
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/chathub"), options =>
+            {
+                if (HttpContextAccessor.HttpContext != null)
+                {
+                    foreach(var cookie in HttpContextAccessor.HttpContext.Request.Cookies)
+                    {
+                        options.Cookies.Add(new Cookie(cookie.Key, cookie.Value, null, "localhost"));
+                    }
+                }
+            })
+            .Build();
+
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            var encodedMsg = $"{user}: {message}";
+            var temp = new ChatMessage
+            {
+                Message = encodedMsg,
+                DateTime = DateTime.Now
+            };
+            messages.Add(temp);
+            messageInput = "";
+            InvokeAsync(StateHasChanged);
+            jsModule!.InvokeVoidAsync("scrollToBottomAnimated");
+        });
+
+        await hubConnection.StartAsync();
+        await hubConnection.SendAsync("ConnectToGroup", roomData.RentBorderId.ToString());
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        jsModule = await JsRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Pages/Chat.razor.js");
+    }
+
+    private void OnKeyPressed(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Task.Run(async () =>
+            {
+                await Send();
+            });
+        }
+    }
+
+    private async Task Send()
+    {
+        if (hubConnection is not null && messageInput != "")
+        {
+            await hubConnection.SendAsync("SendPrivate", userInput, roomData!.RentBorderId.ToString(), messageInput);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    private void NavToDetails()
+    {
+        Navigation.NavigateTo($"/halls/{roomData!.HallId}");
+    }
+}

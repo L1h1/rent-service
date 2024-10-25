@@ -1,0 +1,121 @@
+﻿.centered-items {
+    text-align: center;
+    flex-wrap: wrap;
+    border-radius: 15px;
+    border: 1px solid #FFC34F;
+    background: #FFDD9C;
+    box-shadow: 0px 2px 2px 0px rgba(0, 0, 0, 0.50);
+    margin-top: 3%;
+    width: 70%;
+    min-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 20px;
+    padding-bottom: 50px;
+}
+
+.inline-data {
+    display: flex;
+    padding-left: 20px;
+}
+
+.user-image-box {
+}
+
+.user-image {
+    border-radius: 8px;
+    width: 260px;
+    height: 250px;
+}
+
+.pin-name {
+    display: flex;
+    padding-left: 20px;
+}
+
+.user-info {
+    display: flex;
+    padding-left: 20px;
+}
+
+.user-name {
+    padding-right: 5px;
+    color: #000;
+    text-align: center;
+        font-family: "Roboto", sans-serif;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 1.08px;
+}
+
+.text-style {
+    color: #000;
+    text-align: left;
+        font-family: "Roboto", sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.66px;
+}
+
+.column-data {
+    padding-left: 20px;
+}
+
+.information {
+    margin-left: 20px;
+}
+
+.profile-menu {
+    display: flex;
+    justify-content: left;
+    flex-direction: column;
+    padding-top: 20px;
+    padding-left: 20px;
+}
+
+.menu-item {
+    margin-bottom: 10px;
+    text-decoration: none;
+    padding: 5px;
+    color: #000;
+    text-align: center;
+        font-family: "Roboto", sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.66px;
+    border-radius: 15px;
+    border: 2px solid #FFF;
+    width: 260px;
+}
+
+.menu-item:hover {
+    margin-bottom: 10px;
+    text-decoration: none;
+    padding: 5px;
+    color: #000;
+    text-align: center;
+        font-family: "Roboto", sans-serif;
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    letter-spacing: 0.66px;
+    border-radius: 15px;
+    border: 2px solid #FFF;
+    width: 260px;
+    background: #e9fc9a;
+}
+
+.transition {
+    transition: 0.35s;
+}
+
+.inline {
+    display: flex;
+}

@@ -1,0 +1,27 @@
+﻿@page "/facilities"
+@using RentAGym.Application.LandLordUseCases;
+@using System.Security.Claims;
+
+<h3>FacilityList</h3>
+
+<QuickGrid Items="@_facilities.AsQueryable()">
+    <PropertyColumn Property="@(f=>f.Name)" />
+    <PropertyColumn Property="@(f=>f.City)" />
+</QuickGrid>
+
+@code {
+    [Inject]
+    public IMediator Mediator { get; set; }
+    [Inject]
+    public AuthenticationStateProvider provider { get; set; }
+    List<Facility> _facilities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var id = (await provider.GetAuthenticationStateAsync()).User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        //var id = provider.
+        _facilities = (await Mediator.Send(new GetFacilitiesListRequest(id))).ToList();
+        var a = 0;
+    }
+    //8715bb98-0d96-4ee7-9c38-c67c1699ddbb
+}

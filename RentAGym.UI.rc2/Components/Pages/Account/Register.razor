@@ -1,0 +1,212 @@
+﻿@page "/Account/Register"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity.UI.Services
+@using Microsoft.AspNetCore.WebUtilities
+@using RentAGym.UI.rc2.Data
+@using RentAGym.UI.rc2.Identity
+
+@inject UserManager<IdentityUser> UserManager
+@inject IUserStore<IdentityUser> UserStore
+@inject SignInManager<IdentityUser> SignInManager
+@inject ILogger<Register> Logger
+@inject IEmailSender EmailSender
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Register</PageTitle>
+
+<div class="centered-items">
+        <StatusMessage Message="@Message" />
+        <EditForm id="registerForm" Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+            <DataAnnotationsValidator />
+            <div class="form-name-box">
+                <p class="form-name">Регистрация</p>
+            </div>
+            <div class="form-email">
+                <InputText id="email" @bind-Value="Input.Email" class="form-email-input" autocomplete="username" aria-required="true" placeholder="Email" />
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <div class="form-password">
+                <InputText id="password" type="password" @bind-Value="Input.Password" class="form-password-input" autocomplete="new-password" aria-required="true" placeholder="*****" />
+                <ValidationMessage For="() => Input.Password" class="text-danger" />
+            </div>
+            <div class="form-password">
+                <InputText id="confirm-password" type="password" @bind-Value="Input.ConfirmPassword" class="form-password-input" autocomplete="new-password" aria-required="true" placeholder="*****" />
+                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+            </div>
+            <div>
+                <label style="color:white" for="userCheckbox">Арендодатель?</label>
+                <InputCheckbox id="userCheckbox" type="checkbox" @bind-Value="Input.isLandlord" />
+            </div>
+            <button id="registerSubmit" type="submit" class="form-button transition">Отправить</button>
+            <div class="form-icons">
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 45 45" fill="none">
+                    <path d="M43.7212 18.4457C43.9857 19.9503 44.1098 21.488 44.1098 23.0175C44.1098 29.8627 41.6627 35.6498 37.405 39.5684H37.4133C33.6848 43.0076 28.5674 45 22.4992 45C13.9923 45 6.21282 40.205 2.39336 32.6074C-0.797784 26.2499 -0.79779 18.7598 2.39336 12.4023C6.21281 4.7965 13.9923 0.0015162 22.4992 0.0015162C28.0879 -0.0646216 33.4864 2.03525 37.5539 5.85471L31.1302 12.2783C28.8071 10.0627 25.7069 8.85571 22.4992 8.90531C16.6295 8.90531 11.6444 12.8653 9.86693 18.1977C8.92446 20.992 8.92446 24.0178 9.86693 26.8121H9.8752C11.6609 32.1362 16.6378 36.0962 22.5075 36.0962C25.5416 36.0962 28.1458 35.3191 30.163 33.9467H30.1547C32.5274 32.376 34.1478 29.9041 34.6521 27.1097H22.4992V18.4457H43.7212Z" fill="#FFE877" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 45 45" fill="none">
+                    <path d="M44.9997 22.6367C44.9997 10.1338 34.9255 -0.00170898 22.4984 -0.00170898C10.0712 -0.00170898 -0.00292969 10.1338 -0.00292969 22.6367C-0.00292969 33.9362 8.22548 43.3017 18.9826 45.0001V29.1806H13.2693V22.6367H18.9826V17.6492C18.9826 11.9754 22.3418 8.84141 27.4816 8.84141C29.9435 8.84141 32.5185 9.28357 32.5185 9.28357V14.8547H29.6811C26.8859 14.8547 26.0142 16.5998 26.0142 18.3901V22.6367H32.2548L31.2572 29.1806H26.0142V45.0001C36.7713 43.3017 44.9997 33.9362 44.9997 22.6367Z" fill="#FFE877" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 48 48" fill="none">
+                    <g clip-path="url(#clip0_119_264)">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.37413 3.37413C0 6.74826 0 12.1788 0 23.04V24.96C0 35.8212 0 41.2517 3.37413 44.6259C6.74826 48 12.1788 48 23.04 48H24.96C35.8212 48 41.2517 48 44.6259 44.6259C48 41.2517 48 35.8212 48 24.96V23.04C48 12.1788 48 6.74826 44.6259 3.37413C41.2517 0 35.8212 0 24.96 0H23.04C12.1788 0 6.74826 0 3.37413 3.37413ZM8.10012 14.6001C8.36012 27.0801 14.6001 34.5801 25.5401 34.5801H26.1602V27.4401C30.1802 27.8401 33.22 30.7801 34.44 34.5801H40.1201C38.5601 28.9001 34.4599 25.7601 31.8999 24.5601C34.4599 23.0801 38.0599 19.4801 38.9199 14.6001H33.7598C32.6398 18.5601 29.3202 22.1601 26.1602 22.5001V14.6001H21V28.4401C17.8 27.6401 13.7601 23.7601 13.5801 14.6001H8.10012Z" fill="#FFE877" />
+                    </g>
+                    <defs>
+                        <clipPath id="clip0_119_264">
+                            <rect width="48" height="48" fill="white" />
+                        </clipPath>
+                    </defs>
+                </svg>
+            </div>
+            <div class="form-question">
+                <a href="/Account/Login" class="form-question-text">Уже есть учётная запись?</a>
+            </div>
+        </EditForm>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    public InputModel Input { get; set; } = default!;
+
+    /// <summary>
+    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+    ///     directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    [SupplyParameterFromQuery]
+    public string ReturnUrl { get; set; } = "/";
+
+    /// <summary>
+    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+    ///     directly from your code. This API may change or be removed in future releases.
+    /// </summary>
+    public class InputModel
+    {
+        /// <summary>
+        ///     a parameter for check this future user will be a Landlord or not? Connected with checkbox
+        /// </summary>
+        [Required]
+        [Display(Name = "isLandLord?")]
+        public bool isLandlord { get; set; } = true;
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = null!;
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = null!;
+
+        /// <summary>
+        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = null!;
+    }
+
+    IEnumerable<IdentityError>? identityErrors;
+    string? Message => identityErrors is null ? null : "Error: " + string.Join(", ", identityErrors.Select(error => error.Description));
+
+    protected override void OnInitialized()
+    {
+        Input ??= new();
+    }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        IdentityUser user = Input.isLandlord ? new Landlord() : new Tenant();
+
+        if (Input.isLandlord)
+            (user as Landlord).DateOfRegistration = DateTime.Now;
+        else
+            (user as Tenant).DateOfRegistration = DateTime.Now;
+
+
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        
+        
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (Input.isLandlord)
+            await UserManager.AddClaimAsync(user, new Claim("landLord", "true", ClaimValueTypes.Boolean));
+        else
+            await UserManager.AddClaimAsync(user, new Claim("tenant", "true", ClaimValueTypes.Boolean));
+        await UserManager.AddClaimsAsync(user, new Claim[] {
+                new Claim(ClaimTypes.Email, Input.Email) });
+
+        if (result.Succeeded)
+        {
+            Logger.LogInformation("User created a new account with password.");
+
+            var userId = await UserManager.GetUserIdAsync(user);
+            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+                NavigationManager.ToAbsoluteUri("/Account/ConfirmEmail").AbsoluteUri,
+                new Dictionary<string, object?> { { "userId", userId }, { "code", code }, { "returnUrl", ReturnUrl } });
+
+            string htmlBody = $"Нажмите сюда --> {HtmlEncoder.Default.Encode(callbackUrl)}\n\n Или скопируйте и вставьте эту ссылку в вашем браузере: \n\n {HtmlEncoder.Default.Encode(callbackUrl)}";
+            await EmailSender.SendEmailAsync(
+            Input.Email!,
+            "Confirm your email",
+            htmlBody);
+
+            if (UserManager.Options.SignIn.RequireConfirmedAccount)
+            {
+                RedirectManager.RedirectTo(
+                    "/Account/RegisterConfirmation",
+                    new() { ["Email"] = Input.Email, ["ReturnUrl"] = ReturnUrl });
+            }
+            else
+            {
+                await SignInManager.SignInAsync(user, isPersistent: false);
+                RedirectManager.RedirectTo("/"); // на этой строчке падает вся регистрация,
+                //заменил просто ReturnUrl на корневой '/' путь | тип аккаунта -- клиент
+            }
+        }
+        else
+        {
+            identityErrors = result.Errors;
+        }
+    }
+
+    private IdentityUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<IdentityUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
+                $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<IdentityUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<IdentityUser>) UserStore;
+    }
+}

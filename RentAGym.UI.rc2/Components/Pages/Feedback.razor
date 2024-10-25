@@ -1,0 +1,38 @@
+﻿@page "/halls/{id}/feedbacks"
+
+@inject IMediator Mediator
+@inject NavigationManager NavManager
+@rendermode RenderMode.InteractiveServer
+@using RentAGym.UI.rc2.Components.Common
+
+
+@if(Current == null)
+{
+    <p>Загрузка ...</p>
+    <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Загрузка...</span>
+    </div>
+}
+else if (!Current.Reviews.Any())
+{
+    <p>Опаньки... здесь еще никто не был :)</p>
+}
+else
+{        
+    @foreach(var data in Current.Reviews)
+    {
+        <FeedbackComponent Data="data" />
+    }
+}
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+    HallDetailsRequestDTO Current { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Current = await Mediator.Send(new GetHallByIdRequest(Int32.Parse(id)));
+        await base.OnInitializedAsync();
+    }
+}

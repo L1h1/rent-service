@@ -1,0 +1,60 @@
+﻿@page "/"
+
+@using RentAGym.Application.Filters
+@using RentAGym.UI.rc2.Components.Common
+@inject IMediator Mediator
+@attribute [StreamRendering(enabled:true)]
+@rendermode RenderMode.InteractiveServer
+
+<PageTitle>Home</PageTitle>
+<div class="row bg-body-secondary p-2">
+    <div class="col-2">
+        <TypeSelector @bind-SelectedType="@HallTypeFilter" OnUpdated="@FilterData" />
+    </div>
+</div>
+
+<div class="row">
+    <!-- Боковая панель -->
+    <div class="col-md-3 bg-body-secondary bg-opacity-50">
+        <FilterSidePanel @bind-Filter="@Filter" ApplyFilter="FilterData" />
+    </div><!-- Боковая панель -->
+    <!-- Содержимое страницы -->
+    <div class="col-md-9">
+         @if(Halls == null)
+        {
+            <p>Загрузка ...</p>
+            <div class="spinner-border text-warning" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        }
+        else if (!Halls.Any())
+        {
+            <p>По Вашему запросу ничего не найдено</p>
+        }
+        else
+        {        
+            @foreach(var data in Halls)
+            {
+                <HallComponent Current="data" />
+            }
+        } 
+    </div><!-- Содержимое страницы -->
+</div>
+
+@code{
+    HallType HallTypeFilter { get; set; } = new();
+    IEnumerable<HallListRequestDTO> Halls { get; set; }
+    public HallListFilter Filter { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Halls = await Mediator.Send(new GetHallListRequest(new HallListFilter()));
+    }
+
+    async void FilterData()
+    {
+        Halls = null;
+        Filter.TypeId = HallTypeFilter.Id;
+        Halls = Halls = await Mediator.Send(new GetHallListRequest(Filter));
+    }
+}

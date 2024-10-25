@@ -1,0 +1,94 @@
+﻿@rendermode RenderMode.InteractiveServer
+
+
+
+<Button Class="a-link-filer-panel" Clicked="@ShowModal">
+    @SelectedType.Name  <Icon Class="ms-2" Name="IconName.ChevronRight" />
+</Button>
+
+
+<Modal @ref="modalRef" Closing="@OnModalClosing">
+    <ModalContent Centered>
+        <ModalHeader>
+            <ModalTitle>Выберите тип помещения</ModalTitle>
+            <CloseButton Clicked="@HideModal" />
+        </ModalHeader>
+        <ModalBody>
+            <RadioGroup TValue="int"
+                        CheckedValue="@SelectedType.Id"
+                        CheckedValueChanged="HallTypeSelected"
+                        Name="hallType">
+                @foreach (var item in HallTypes)
+                {
+                    <Radio Value="@item.Id">@item.Name</Radio>
+                }
+            </RadioGroup>
+        </ModalBody>
+        <ModalFooter>
+            <Button Type="ButtonType.Submit" Color="Color.Light" Clicked="@HideModal">Закрыть</Button>
+        </ModalFooter>
+    </ModalContent>
+</Modal>
+
+
+
+@code {
+    [Inject]
+    public IMediator Mediator { get; set; }
+
+    [Parameter]
+    public HallType SelectedType { get; set; }
+    [Parameter]
+    public EventCallback<HallType>? SelectedTypeChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnUpdated { get; set; }
+
+    List<HallType> HallTypes { get; set; }
+
+    #region Modal
+    private Modal modalRef;
+
+    bool cancelClose = true;
+
+    private Task ShowModal()
+    {
+        return modalRef.Show();
+    }
+
+    private async Task HideModal()
+    {
+        cancelClose = false;
+        await SelectedTypeChanged?.InvokeAsync(SelectedType);
+        await modalRef.Hide();
+        cancelClose = true;
+        await OnUpdated.InvokeAsync();
+    }
+
+    private Task OnModalClosing(ModalClosingEventArgs e)
+    {
+        // just set Cancel to prevent modal from closing
+        e.Cancel = cancelClose
+            || e.CloseReason != CloseReason.UserClosing;
+
+        return Task.CompletedTask;
+    }
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        SelectedType = new HallType() { Id = 0, Name = "Все типы" };
+        HallTypes = new List<HallType>(new[] { SelectedType });
+        var data = await Mediator.Send(new GetHallTypesRequest());
+
+        HallTypes.AddRange(data.ToArray().OrderBy(t => t.Name));
+    }
+
+
+    Task HallTypeSelected(int id)
+    {
+        SelectedType = HallTypes.First(t => t.Id == id);
+        return Task.CompletedTask;
+    }
+
+}

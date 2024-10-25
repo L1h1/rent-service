@@ -1,0 +1,18 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link href="~/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/bootstrap/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
+    @await RenderSectionAsync("Styles",false)
+</head>
+<body>
+    <div class="container">
+        @RenderBody()
+    </div>
+    <script src="jquery/jquery.min.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+</body>
+</html>

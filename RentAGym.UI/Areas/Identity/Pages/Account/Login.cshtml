@@ -1,0 +1,61 @@
+﻿@page
+@model LoginModel
+
+@{
+
+}
+<body>
+<div class="container">
+    <div class="login-box-container">
+        <div class="login-box">
+            <div class="row">
+                <section>
+                    <form id="account" method="post">
+                        <h2>Вход в аккаунт</h2>
+                        <hr/>
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-floating" style="margin-bottom: 10px">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="email" aria-required="true"/>
+                            <label asp-for="Input.Email" class="form-label">E-mail</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true"/>
+                            <label asp-for="Input.Password" class="form-label">Пароль</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <div class="checkbox">
+                                <label asp-for="Input.RememberMe" class="form-label">
+                                    <input class="form-check-input" asp-for="Input.RememberMe"/>
+                                    Запомнить?
+                                </label>
+                            </div>
+                        </div>
+                        <div style="margin: auto; justify-content: center; display: flex;">
+                            <button id="login-submit" type="submit" class="btn main-button-medium fade-for-main-button">Вход</button>
+                        </div>
+                        <div>
+                            <p style="text-align: center; margin-top: 10px">
+                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" style="color: #3E95B8;">Регистрация</a>
+                            </p>
+                            @* <p style="text-align: center"> *@
+                            @*     <a id="forgot-password" asp-page="./ForgotPassword" style="color: #3E95B8;">Забыли пароль?</a> *@
+                            @* </p> *@
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+
+@* @section styles{
+    <link href="~/css/login-form.css" rel="stylesheet"/>
+} *@
+
+@* @section Scripts {
+    <partial name="_ValidationScriptsPartial"/>
+} *@

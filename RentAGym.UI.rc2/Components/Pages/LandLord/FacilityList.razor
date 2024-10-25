@@ -1,0 +1,58 @@
+﻿@page "/facilities"
+@attribute [StreamRendering(true)]
+@using RentAGym.Application.LandLordUseCases;
+@using System.Security.Claims;
+
+
+<div class="facility-top">
+    <h3>Мои объекты</h3>
+    <a class="a-link" href="/LandLord/add-object">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+        </svg> Добавить объект
+    </a>
+</div>
+
+@if(_facilities==null)
+{
+    <p>Загрузка ...</p>
+    <p>(возможно, объекты отсутствуют)</p>
+}
+else
+{
+    <div class="facility-list">
+        @foreach (var f in _facilities)
+        {
+            <div class="card">
+                <img class="card-img-top" src="./Images/objectBackground.png" alt="Card image cap">
+                <div class="card-body">
+                    <h5 class="card-title">@f.Name</h5>
+                    <p class="card-text">@f.City</p>
+                    <p class="card-text">@f.Address</p>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="/Landlord/halls/@f.Id" class="btn btn-primary">Подробнее</a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+
+@code {
+    [Inject] public IMediator Mediator { get; set; }
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    List<Facility> _facilities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateTask;
+        if(authenticationState.User.Identity.IsAuthenticated)
+        {
+            var id = authenticationState.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            _facilities = (await Mediator.Send(new GetFacilitiesListRequest(id))).ToList();
+        }        
+        
+    }
+}

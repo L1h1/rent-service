@@ -1,0 +1,52 @@
+﻿@page "/backend_testing/{id}"
+
+@using RentAGym.Application.CommonUseCases;
+@using System.Security.Claims;
+@using RentAGym.Application.Dto;
+@using RentAGym.Application.Interfaces;
+@using RentAGym.Application.TenantUseCases;
+
+<h3>FacilityList</h3>
+
+
+
+@code {
+    [Inject]
+    public IMediator Mediator { get; set; }
+    [Inject]
+    public AuthenticationStateProvider provider { get; set; }
+
+    [Inject]
+    public IFileService fileService { get; set; }
+
+
+    [Parameter]
+    public string id{ get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        //регистрация Facility
+        //var tresp = await Mediator.Send(new CreateFacilityRequest(new CreateFacilityRequestDTO() {Name="aboba", LandLordId = "830cd5e1-2048-439b-8d78-1210420a1d0a", RegionId = 1, Address = "aboba", City = "aboba", Country = "aboba", Longitude = 52.1, Latitude = 54.3 }));
+
+        //объекты с залами по id лендлорда
+        //facilities = (await Mediator.Send(new GetFacilitiesListRequest("830cd5e1-2048-439b-8d78-1210420a1d0a"))).ToList();
+        //залы для арендатора
+        //halls = (await Mediator.Send(new GetRentedHallsRequest("6dfda6ed-3949-454f-bdfd-f909741f3c3a"))).ToList();
+        //инфо о пользователе
+        //var resp = await Mediator.Send(new GetUserInfoRequest("6dfda6ed-3949-454f-bdfd-f909741f3c3a"));
+        //users.Add(resp);
+
+        //var resp = await Mediator.Send(new RegisterRentRequest("f1747caa-4105-4896-bcdf-2ece29f0562d", 1, true, new DateTime(2024, 3, 29, 11, 0, 0), new DateTime(2024, 3, 30, 13, 0, 0)));
+        //var resp = await Mediator.Send(new GetChatRoomHistoryRequest("1"));
+        //var resp = await Mediator.Send(new EditHallRequest(new EditHallRequestDTO() {Id=5,BasePrice=80,HallTypeId=1,Area=300 }));
+        //System.Diagnostics.Debug.WriteLine($"-------------------------------------------{resp}");
+        var tresp = await Mediator.Send(new AddReviewRequest(new Review() { Mark = 2, Username = "aaaa", Contents = "qqqq", HallId = 1, Name="Title" }));
+        var resp = await Mediator.Send(new GetHallByIdRequest(1));
+    }
+    //8715bb98-0d96-4ee7-9c38-c67c1699ddbb
+    //830cd5e1-2048-439b-8d78-1210420a1d0a
+}
+

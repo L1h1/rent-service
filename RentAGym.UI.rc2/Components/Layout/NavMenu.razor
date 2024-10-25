@@ -1,0 +1,82 @@
+﻿@using RentAGym.UI.rc2.Components.Identity
+
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #FFC34F;">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Rent-a-Gym</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <AuthorizeView>
+                    <Authorized>
+
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/Account/Manage">
+                                @context.User.Identity?.Name
+                            </NavLink>
+                        </li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="images/anonymous.png" width="30" alt="User" class="rounded" />
+                            </a>
+
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+
+                                <li><NavLink class="dropdown-item" href="@profilePath">Профиль</NavLink></li>
+                                <li>
+                                    <NavLink class="dropdown-item" href="/Account/logout">
+                                        Выход
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </li>
+
+                    </Authorized>
+                    <NotAuthorized>
+
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/Account/Register">
+                                Зарегистрироваться
+                            </NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="/Account/Login">
+                                Войти
+                            </NavLink>
+                        </li>
+
+                    </NotAuthorized>
+                </AuthorizeView>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+@code{
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask {get;set;}
+    // Путь к странице профиля
+    string profilePath = string.Empty;
+
+    protected override async Task OnInitializedAsync(){
+        var authenticationState = await AuthenticationStateTask;
+        var user = authenticationState.User;
+        // получить путь к странице профиля
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = user.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (user.HasClaim("LandLord","true"))
+            {
+                profilePath = $"/LandLord/profile";
+            }
+            else
+            {
+                profilePath = $"/Tenant/profile";
+            }
+        }     
+    }
+}

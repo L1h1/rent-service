@@ -1,0 +1,279 @@
+﻿@page "/LandLord/add-hall/{facID}"
+@using RentAGym.Application.Interfaces;
+@rendermode RenderMode.InteractiveServer
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Threading
+@inject IHttpClientFactory ClientFactory
+@inject ILogger<AddHall> Logger
+@inject IJSRuntime JS
+
+<JSScript JSFile="./Components/Pages/LandLord/AddHall.razor.js" />
+
+<EditForm method="post" Model="@Hall" OnValidSubmit="SaveHallAsync" enctype="multipart/form-data" class="g-3" FormName="addHall">
+    <div class="col-md-5 form-section">
+        <label for="formFileMultiple" class="form-label">Загрузите фото</label>
+        <InputFile OnChange="@OnInputFileChange" multiple required accept="image/*" class="form-control-custom" /> 
+
+        <section class="container">
+            <div class="slider-wrapper">
+                @if (uploadResults.Count > 0)
+                {
+                    <p class="slider-caption">Предпросмотр ваших изображений</p>
+                    <div class="slider" @ref="slider">
+                        @foreach (var image in uploadResults)
+                        {
+                            <img id="@image.Id" src="@($"data:image/png;base64,{Convert.ToBase64String(image.ImageData)}")" alt="Uploaded Image" />
+                            // добавить ещё кнопку удаления картинки (есть вариант с js)
+                        }
+                    </div>
+                    <div class="slider-nav">
+                        @foreach (var nav in uploadResults)
+                        {
+                            int index = nav.Id;
+                            <a @onclick="(() => ChangeSlide(index.ToString()))" @onclick:preventDefault></a>
+                        }
+                    </div>
+                }
+            </div>
+        </section
+
+        <label for="validationCustom01" class="form-label">Название</label>
+        <InputText @bind-Value="@Hall.Name" type="text" class="form-control-custom" required></InputText>
+
+        <label for="validationCustom02" class="form-label">Описание</label>
+        <InputTextArea @bind-Value="@Hall.Description" type="text" class="form-control-custom" required></InputTextArea>
+
+        <label for="validationCustom03" class="form-label">Стоимость аренды за час</label>
+        <InputNumber @bind-Value="@Hall.Price" type="text" class="form-control-custom" required></InputNumber>
+
+        <div class="schedule">
+            <label for="monday">Понедельник:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="monday" name="monday" @bind-value="@works[0].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="monday_end" name="monday_end" @bind-value="@works[0].WorkTo" step="3600">
+            </div>
+            <label for="tuesday">Вторник:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="tuesday" name="tuesday" @bind-value="@works[1].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="tuesday_end" name="tuesday_end" @bind-value="@works[1].WorkTo" step="3600">
+            </div>
+            <label for="wednesday">Среда:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="wednesday" name="wednesday" @bind-value="@works[2].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="wednesday_end" name="wednesday_end" @bind-value="@works[2].WorkTo" step="3600">
+            </div>
+            <label for="thursday">Четверг:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="thursday" name="thursday" @bind-value="@works[3].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="thursday_end" name="thursday_end" @bind-value="@works[3].WorkTo" step="3600">
+            </div>
+            <label for="friday">Пятница:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="friday" name="friday" @bind-value="@works[4].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="friday_end" name="friday_end" @bind-value="@works[4].WorkTo" step="3600">
+            </div>
+            <label for="saturday">Суббота:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="saturday" name="saturday" @bind-value="@works[5].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="saturday_end" name="saturday_end" @bind-value="@works[5].WorkTo" step="3600">
+            </div>
+            <label for="sunday">Воскресенье:</label>
+            <div class="schedule-day">
+                <input class="form-control-custom" type="time" id="sunday" name="sunday" @bind-value="@works[6].WorkFrom" step="3600">
+                <input class="form-control-custom" type="time" id="sunday_end" name="sunday_end" @bind-value="@works[6].WorkTo" step="3600">
+            </div>
+        </div>
+
+        <label for="validationCustom03" class="form-label">Площадь помещения в м2</label>
+        <InputNumber @bind-Value="@Hall.Area" type="text" class="form-control-custom" id="validationCustom03" required></InputNumber>
+        
+        <label for="validationCustom03" class="form-label">Тип помещения</label>
+        <InputSelect @bind-Value="@selectedType.Id" @onchange="@((args) => selectedType = new HallType { Id = (int)args.Value })" class="form-control-custom" >
+            @foreach (var type in HallTypes)
+            {
+                <option value="@type.Id">@type.Name</option>
+            }
+        </InputSelect>
+
+        <label class="form-label">Дополнительные удобства</label>
+        @foreach (var type in resp)
+        {   
+        <div>
+            <input type="checkbox" id="@($"checkbox_{type.Id}")" name="selectedTypes" value="@type.Id" @onchange="() => ToggleSelectedType(type.Id)" checked="@selectedTypeIds.Contains(type.Id)" />
+            <label for="@($"checkbox_{type.Id}")">@type.Name</label>
+        </div>
+        }
+
+
+    </div>
+    <br />
+    <div class="col-12" style="padding-bottom: 10px;">
+        <button class="btn btn-primary" type="submit">Отправить</button>
+    </div>
+    <DataAnnotationsValidator />
+</EditForm>
+
+@code {
+    [Parameter]
+    public string facID { get; set; }
+    private List<UploadResult> uploadResults = new();
+    private int maxAllowedImages = 9;
+    private bool shouldRender;
+    private string? message;
+    private IJSObjectReference? jsModule;
+    protected override bool ShouldRender() => shouldRender;
+    [SupplyParameterFromForm] public CreateHallRequestDTO Hall { get; set; } = new();
+
+    IEnumerable<Option> resp;
+    List<Option> selectedValues = new List<Option>();
+    Option selectedOption = new();
+
+    IEnumerable<HallType> typeOfHall;
+    List<HallType> HallTypes = new List<HallType>();
+    HallType selectedType = new();
+    WorkSchedulePiece[] works;
+
+    protected override async Task OnInitializedAsync()
+    {
+        resp = await Mediator.Send(new GetOptionsListRequest());
+        typeOfHall = await Mediator.Send(new GetHallTypesRequest());
+        foreach (var type in typeOfHall)
+        {
+            HallTypes.Add(type);
+        }
+        works = new WorkSchedulePiece[]
+       {
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("9:00"),WorkTo=TimeOnly.Parse("23:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("9:00"),WorkTo=TimeOnly.Parse("23:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("9:00"),WorkTo=TimeOnly.Parse("23:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("9:00"),WorkTo=TimeOnly.Parse("23:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("9:00"),WorkTo=TimeOnly.Parse("23:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("10:00"),WorkTo=TimeOnly.Parse("21:00")},
+                new WorkSchedulePiece(){WorkFrom = TimeOnly.Parse("10:00"),WorkTo=TimeOnly.Parse("21:00")}
+       };
+    }
+    List<int> selectedTypeIds { get; set; } = new List<int>();
+
+    void ToggleSelectedType(int typeId)
+    {
+        if (selectedTypeIds.Contains(typeId))
+        {
+            selectedTypeIds.Remove(typeId);
+        }
+        else
+        {
+            selectedTypeIds.Add(typeId);
+        }
+    }
+
+    private async void SaveHallAsync()
+    {
+        Hall.FacilityId = int.Parse(facID);
+        foreach (var option in selectedTypeIds)
+        {
+            Hall.Options.Add(resp.First(x => x.Id == option));
+        }
+        Hall.HallTypeId = selectedType.Id;
+        
+        Hall.WorkSchedule.AddRange(works);
+        foreach (var file in uploadResults)
+        {
+            using (MemoryStream stream = new MemoryStream(file.ImageData))
+            {
+                Hall.ImagePaths.Add(await fileService.SaveFileAsync(stream, file._File.Name));
+            }
+
+        }
+
+        await Mediator.Send(new CreateHallRequest(Hall));
+    }
+    [Inject]
+    public IMediator Mediator { get; set; }
+
+    [Inject]
+    public IFileService fileService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    private async Task<byte[]> ReadAllBytesAsync(Stream stream, int maxBytes)
+    {
+        using var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream, maxBytes);
+        return memoryStream.ToArray();
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        shouldRender = false;
+        int maxImageSize = 1024 * 1024 * 5; // 5 MB
+        var upload = false;
+        uploadResults.Clear();
+
+        using var content = new MultipartFormDataContent();
+
+        if (e.FileCount > maxAllowedImages)
+        {
+            message = $"Try again with no more than {maxAllowedImages} images.";
+        }
+        else
+        {
+            int index = 0;
+            foreach (var file in e.GetMultipleFiles(maxAllowedImages))
+            {
+                if (uploadResults.SingleOrDefault(
+                    f => f._File.Name == file.Name) is null)
+                {
+                    try
+                    {
+                        index++;
+                        var imageData = await ReadAllBytesAsync(file.OpenReadStream(maxImageSize), maxImageSize);
+                        upload = true;
+                        uploadResults.Add(new UploadResult
+                        {
+                            _File = file,
+                            ImageData = imageData,
+                            Uploaded = true,
+                            Id = index
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogInformation("{FileName} not uploaded (Err: 5): {Message}", file.Name, ex.Message);
+                    }
+                }
+            }
+            index = 0;
+
+            message = string.Empty; // можно потом использовать для отображения результата на форме
+        }
+        shouldRender = true; // можно потом использовать для проверки результата в if/else 
+    }
+
+    private static bool ImageUpload(List<UploadResult> uploadResults, byte[] image, out UploadResult result)
+    {
+        result = uploadResults.SingleOrDefault(f => f.ImageData.SequenceEqual(image)) ?? new UploadResult();
+
+        return result.Uploaded;
+    }
+
+    public class UploadResult
+    {
+        public IBrowserFile _File { get; set; }
+        public byte[] ImageData { get; set; }
+        public bool Uploaded { get; set; }
+        public int Id { get; set; }
+    }   
+
+    private ElementReference slider;
+
+    private async Task ChangeSlide(string slideId)
+    {
+        jsModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Pages/Landlord/AddHall.razor.js");
+        await jsModule.InvokeVoidAsync("changeSlide", slider, slideId);
+    }
+}

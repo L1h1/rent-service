@@ -1,0 +1,35 @@
+﻿@* @page "/halls"
+
+@using RentAGym.Application.CommonUseCases;
+@using System.Security.Claims;
+@using RentAGym.Application.Dto;
+
+<h3>FacilityList</h3>
+
+<QuickGrid Items="@_halls.AsQueryable()">
+    <PropertyColumn Property="@(h=>h.Id)" />
+    <PropertyColumn Property="@(h=>h.Name)" />
+    <PropertyColumn Property="@(h=>h.Description)" />
+    <PropertyColumn Property="@(h=>h.Price)" />
+    <PropertyColumn Property="@(h=>h.Thumbnail)" />
+    <PropertyColumn Property="@(h=>h.OverallRating)" />
+
+</QuickGrid>
+
+@code {
+    [Inject]
+    public IMediator Mediator { get; set; }
+    [Inject]
+    public AuthenticationStateProvider provider { get; set; }
+    List<HallListRequestDTO> _halls;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        _halls = (await Mediator.Send(new GetHallListRequest(optionIds:new List<int>() {1,2}))).ToList();
+
+    }
+    //8715bb98-0d96-4ee7-9c38-c67c1699ddbb
+}
+
+ *@

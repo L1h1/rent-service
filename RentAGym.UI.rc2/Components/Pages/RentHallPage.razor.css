@@ -1,0 +1,88 @@
+﻿
+.form-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #FFC34F;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    background: #fffffb;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 20px;
+}
+
+label {
+    margin-bottom: 0.5rem;
+}
+
+.before-time-caption {
+    display: flex;
+    justify-content: space-around;
+    align-content: center;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
+}
+
+.time-caption {
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+}
+
+button {
+    margin-top: 1rem;
+    border-radius: 5px;
+    width: 120px;
+    opacity: 0.75;
+    transition: 0.35s linear;
+    margin-inline: auto;
+}
+
+button:hover {
+    background-color: #fff47c;
+    opacity: 1;
+}
+
+.btns {
+    display: flex;
+    justify-content:center;
+    padding-bottom: 30px;
+}
+
+.custom-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-tooltip::after {
+  content: "Например, вы выбрали бронь: Понедельник, с 10:00 до 12:00. Активация данного пункта будет продлевать вашу бронь на каждый понедельник с 10:00 до 12:00. Не выбирайте, если не уверены. Это поле не обязательно.";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  width: 200px;
+  background-color: #000;
+  color: #fff;
+  font-size: 14px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.custom-tooltip:hover::after {
+  opacity: 1;
+}
+
+.week-block {
+    text-align:center;
+}

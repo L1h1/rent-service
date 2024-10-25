@@ -1,0 +1,24 @@
+﻿<td @onclick="() => ToggleBooking(CellTime)" class="@GetCellClass(CellTime)">
+    @CellTime
+</td>
+
+@code {
+    [Parameter]
+    public string CellTime { get; set; }
+
+    [Parameter]
+    public bool IsBooked { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnBookingToggle { get; set; }
+
+    private void ToggleBooking(string cellTime)
+    {
+        OnBookingToggle.InvokeAsync(cellTime);
+    }
+
+    private string GetCellClass(string cellTime)
+    {
+        return IsBooked ? "booked" : string.Empty;
+    }
+}

@@ -1,0 +1,151 @@
+﻿@page "/halls/{id}"
+
+@inject IJSRuntime JS
+@inject IMediator Mediator
+@inject NavigationManager NavManager
+@rendermode RenderMode.InteractiveServer
+@using RentAGym.Application.TenantUseCases
+@using RentAGym.UI.rc2.Components.Common
+@inject ILogger<Hall> Logger
+@using System.Globalization
+
+
+
+@if (Current == null)
+{
+    <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else
+{
+    <PageTitle>@Current.Name</PageTitle>
+
+    <div class="centered-items">
+        <div class="row items">
+        <!-- Содержимое страницы -->
+            <!-- Содержимое слайдера -->
+            <section class="container">
+                <div class="slider-wrapper">
+                    <div class="slider" @ref="slider">
+                        @for (int i = 0; i < images.Count; i++)
+                        {
+                            int index = i; // явное захватывание значения i в локальной переменной
+                            <img id="@images[index].Id" class="img-item" src="@images[index].Source" alt="Hall image @index + 1" />
+                        }
+                    </div>
+                    <div class="slider-nav">
+                        @for (int i = 0; i < images.Count; i++)
+                        {
+                            int index = i; // аналогично
+                            <a @onclick="(() => ChangeSlide(images[index].Id))" @onclick:preventDefault></a>
+                        }
+                    </div>
+                </div>
+            </section>
+            <!-- Содержимое слайдера -->
+            <div class="caption-line">
+                <div class="caption">
+                    <p class="name">@Current.Name</p>
+                </div>
+                <div class="actions">
+                    <a class="a-link" style="margin-left: 5px" href="/halls/@id/feedbacks">Отзывы клиентов</a>
+                    <a class="a-link" style="margin-left: 5px" @onclick="NavToRent" @onclick:preventDefault>Арендовать</a>
+                </div>
+            </div>
+            <!-- Содержимое рейтинга -->
+            <div class="rating-block">
+                <p class="rating-name">Рейтинг</p>
+                <div class="rating-info">
+                    <Rating Color="Color.Warning" SelectedValue="@((int)Current.OverallRating)" Disabled=true MaxValue="5" /> @Current.OverallRating.ToString("0.00")
+                    <p class="rating-count">оценило: @Current.ReviewCount чел.</p>
+                </div>
+            </div>
+            <!-- Содержимое рейтинга -->
+            <div class="container-description">
+                <p class="description">@Current.Description Where does it come from?
+                    Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.
+                    The standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from "de Finibus Bonorum et Malorum" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.
+                </p>
+            </div>
+            <p class="price">Цена: @Current.Price BYN</p>
+            <p class="address">@Current.Address</p>
+            <div class="contact-info">
+                <MapView Longitude="Current.Latitude" Latitude="Current.Longitude" Zoom="17" Style="height: 400px; width: 600px;">
+                    <Map ArcGISDefaultBasemap="arcgis-topographic">
+                        <BingMapsLayer Key="AhpMcEovB9kF91KWQbiV-Tt9EkId-9iYFaBc04hivbgoPjzfyjkeU804ZgUc9z0-" Style="BingImageryStyle.Hybrid" >
+                        </BingMapsLayer>
+                    </Map>
+                    <Graphic>
+                        <Point Latitude="Current.Longitude" Longitude="Current.Latitude"></Point>
+                        <SimpleMarkerSymbol Color="@(new MapColor(226, 119, 40))">
+                            <Outline Color="@(new MapColor(255, 255, 255))" Width="1" />
+                        </SimpleMarkerSymbol>
+                    </Graphic>
+                    <SearchWidget Position="OverlayPosition.TopRight" />
+                    <HomeWidget Position="OverlayPosition.TopLeft" />
+                    <ScaleBarWidget Position="OverlayPosition.BottomLeft" />
+                </MapView>
+                <div class="contact-block">
+                    <p class="contact-head">Контактная информация:</p>
+                    <p class="contact-phone">@Current.UserName</p>
+                    <p class="contact-phone">@Current.PhoneNumber</p>
+                    <p class="contact-email">@Current.Email</p>
+                </div>
+            </div>
+        <!-- Содержимое страницы -->
+        </div>
+    </div>
+    <JSScript JSFile="./Components/Pages/Hall.razor.js" />
+
+}    
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+    HallDetailsRequestDTO Current { get; set; }
+    private IJSObjectReference? jsModule;
+    private List<(string Source, string Id)> images;
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    AuthenticationState authenticationState;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        authenticationState = await AuthenticationStateTask;
+        StateHasChanged();
+        Current = await Mediator.Send(new GetHallByIdRequest(Int32.Parse(id)));
+        images = new List<(string Source, string Id)>();
+        if (Current != null)
+        {
+            for (int i = 0; i < Current.Images.Count; i++)
+            {
+                images.Add(
+                    (Current.Images[i].ImageUri, $"slide-{i+1}")
+                );
+            }
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private ElementReference slider;
+
+    private async Task ChangeSlide(string slideId)
+    {
+        jsModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Pages/Hall.razor.js");
+        await jsModule.InvokeVoidAsync("changeSlide", slider, slideId);
+    }
+    private void NavToRent()
+    {
+        @if (authenticationState.User.Identity.IsAuthenticated && Current.Email != authenticationState.User.Identity.Name)
+        {
+            NavManager.NavigateTo($"/rent/{id}");
+        }
+        else if (!authenticationState.User.Identity.IsAuthenticated)
+        {
+            NavManager.NavigateTo($"/Account/login");
+        }
+    }
+}

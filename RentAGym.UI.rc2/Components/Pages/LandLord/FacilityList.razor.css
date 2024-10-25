@@ -1,0 +1,64 @@
+﻿.facility-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-top: 10px;
+}
+
+.card {
+    margin-left: 20px;
+    margin-bottom: 20px;
+    margin-right: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 25rem;
+}
+
+.card-footer {
+    background-color: #FFF;
+    border-top: none;
+}
+
+a {
+    color: #000;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px;
+    line-height: normal;
+    letter-spacing: 0.69px;
+    border-radius: 6px;
+    border: 1px solid #FFC34F;
+    transition: 0.15s linear;
+    text-decoration: none;
+    padding-inline: 5px;
+    padding-block: 2px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: stretch;
+    padding: 5px;
+}
+
+a:hover {
+    color: mintcream;
+    background-color: #FFC34F; 
+    border: 1px solid #FFC34F;
+}
+
+.a-link {
+    max-width: 400px;
+}
+
+.facility-top {
+    display: flex;
+    align-content: space-around;
+    flex-wrap: wrap;
+    flex-direction: column;
+    padding: 5px;
+    text-align: center;
+}
